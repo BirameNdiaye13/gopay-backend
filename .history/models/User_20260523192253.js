@@ -17,11 +17,6 @@ const userSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
-  role: {
-    type: String,
-    enum: ['OWNER', 'MANAGER'],
-    default: 'OWNER'  // ← Par défaut propriétaire
-  },
   createdAt: {
     type: Date,
     default: Date.now

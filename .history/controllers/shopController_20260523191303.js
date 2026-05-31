@@ -1,5 +1,4 @@
 const Shop = require('../models/Shop');
-const ShopMember = require('../models/ShopMember');
 
 // Obtenir toutes les boutiques de l'utilisateur
 exports.getShops = async (req, res) => {
@@ -15,8 +14,7 @@ exports.getShops = async (req, res) => {
 exports.createShop = async (req, res) => {
   try {
     const { name, icon, phoneNumber, isActive } = req.body;
-    
-    // 1️⃣ Créer la boutique
+
     const shop = await Shop.create({
       userId: req.user.id,
       name,
@@ -25,20 +23,7 @@ exports.createShop = async (req, res) => {
       isActive
     });
 
-    // 2️⃣ AJOUTER le propriétaire comme OWNER dans ShopMember
-    const shopMember = await ShopMember.create({
-      shopId: shop._id,
-      userId: req.user.id,
-      role: 'OWNER',
-      status: 'active',
-      joinedAt: new Date()
-    });
-
-    res.status(201).json({ 
-      success: true, 
-      shop,
-      message: 'Boutique créée et vous êtes enregistré comme propriétaire !'
-    });
+    res.status(201).json({ success: true, shop });
   } catch (error) {
     res.status(500).json({ message: 'Erreur serveur', error: error.message });
   }
