@@ -1,3 +1,5 @@
+# ShopMember.js
+cat > ~/Documents/gopay-backend/models/ShopMember.js << 'EOF'
 const mongoose = require('mongoose');
 
 const shopMemberSchema = new mongoose.Schema({
@@ -11,3 +13,4 @@ const shopMemberSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 module.exports = mongoose.model('ShopMember', shopMemberSchema);
+EOF
