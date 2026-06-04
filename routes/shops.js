@@ -19,7 +19,6 @@ router.route('/:id')
   .put(updateShop)
   .delete(deleteShop);
 
-  const shops = await Shop.find({ userId: req.user.id });
 
 // Inviter un gérant dans une boutique
 router.post('/:shopId/invite', inviteManager);
