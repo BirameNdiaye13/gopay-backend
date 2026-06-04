@@ -1,5 +1,6 @@
 const Transaction = require('../models/Transaction');
 const Shop = require('../models/Shop');
+const ShopMember = require('../models/ShopMember');
 
 // Obtenir les transactions d'une boutique
 exports.getTransactions = async (req, res) => {
@@ -7,9 +8,9 @@ exports.getTransactions = async (req, res) => {
     const { shopId } = req.params;
 
     // Vérifier que la boutique appartient à l'utilisateur
-    const shop = await Shop.findOne({ _id: shopId, userId: req.user.id });
-    if (!shop) {
-      return res.status(404).json({ message: 'Boutique non trouvée' });
+    const member = await ShopMember.findOne({ shopId, userId: req.user.id, status: 'active' });
+    if (!member) {
+      return res.status(403).json({ message: 'Accès refusé à cette boutique' });
     }
 
     const transactions = await Transaction.find({ shopId }).sort('-timestamp');
@@ -25,9 +26,9 @@ exports.createTransaction = async (req, res) => {
     const { shopId, amount, method, sender, clientName, type } = req.body;
 
     // Vérifier que la boutique appartient à l'utilisateur
-    const shop = await Shop.findOne({ _id: shopId, userId: req.user.id });
-    if (!shop) {
-      return res.status(404).json({ message: 'Boutique non trouvée' });
+    const member = await ShopMember.findOne({ shopId, userId: req.user.id, status: 'active' });
+    if (!member) {
+      return res.status(403).json({ message: 'Accès refusé à cette boutique' });
     }
 
     const transaction = await Transaction.create({
@@ -51,9 +52,9 @@ exports.getStats = async (req, res) => {
     const { shopId } = req.params;
 
     // Vérifier que la boutique appartient à l'utilisateur
-    const shop = await Shop.findOne({ _id: shopId, userId: req.user.id });
-    if (!shop) {
-      return res.status(404).json({ message: 'Boutique non trouvée' });
+    const member = await ShopMember.findOne({ shopId, userId: req.user.id, status: 'active' });
+    if (!member) {
+      return res.status(403).json({ message: 'Accès refusé à cette boutique' });
     }
 
     const transactions = await Transaction.find({ shopId, type: 'income' });

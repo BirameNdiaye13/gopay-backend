@@ -10,4 +10,7 @@ const shopMemberSchema = new mongoose.Schema({
   invitedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 }, { timestamps: true });
 
+const members = await ShopMember.find({ userId, status: 'active' }).populate('shopId');
+const shops = members.map(m => ({ ...m.shopId.toObject(), userRole: m.role }));
+
 module.exports = mongoose.model('ShopMember', shopMemberSchema);
