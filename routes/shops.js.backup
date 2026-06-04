@@ -8,7 +8,6 @@ const {
   inviteManager
 } = require('../controllers/shopController');
 const { protect } = require('../middleware/auth');
-const { isOwner } = require('../middleware/isOwner');
 
 router.use(protect); // Toutes les routes nécessitent l'authentification
 
@@ -16,12 +15,12 @@ router.route('/')
   .get(getShops)
   .post(createShop);
 
-// Modifier / supprimer une boutique : réservé au propriétaire
 router.route('/:id')
-  .put(isOwner, updateShop)
-  .delete(isOwner, deleteShop);
+  .put(updateShop)
+  .delete(deleteShop);
 
-// Inviter un gérant : réservé au propriétaire
-router.post('/:shopId/invite', isOwner, inviteManager);
+
+// Inviter un gérant dans une boutique
+router.post('/:shopId/invite', inviteManager);
 
 module.exports = router;

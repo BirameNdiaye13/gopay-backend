@@ -1,14 +1,15 @@
 const Expense = require('../models/Expense');
-const ShopMember = require('../models/ShopMember');
+const Shop = require('../models/Shop');
 
-// Obtenir les dépenses d'une boutique (tout membre actif)
+// Obtenir les dépenses d'une boutique
 exports.getExpenses = async (req, res) => {
   try {
     const { shopId } = req.params;
 
-    const member = await ShopMember.findOne({ shopId, userId: req.user.id, status: 'active' });
-    if (!member) {
-      return res.status(403).json({ message: 'Accès refusé à cette boutique' });
+    // Vérifier que la boutique appartient à l'utilisateur
+    const shop = await Shop.findOne({ _id: shopId, userId: req.user.id });
+    if (!shop) {
+      return res.status(404).json({ message: 'Boutique non trouvée' });
     }
 
     const expenses = await Expense.find({ shopId }).sort('-createdAt');
@@ -18,14 +19,15 @@ exports.getExpenses = async (req, res) => {
   }
 };
 
-// Créer une dépense (tout membre actif)
+// Créer une dépense
 exports.createExpense = async (req, res) => {
   try {
     const { shopId, amount, category, note } = req.body;
 
-    const member = await ShopMember.findOne({ shopId, userId: req.user.id, status: 'active' });
-    if (!member) {
-      return res.status(403).json({ message: 'Accès refusé à cette boutique' });
+    // Vérifier que la boutique appartient à l'utilisateur
+    const shop = await Shop.findOne({ _id: shopId, userId: req.user.id });
+    if (!shop) {
+      return res.status(404).json({ message: 'Boutique non trouvée' });
     }
 
     const expense = await Expense.create({
@@ -41,25 +43,19 @@ exports.createExpense = async (req, res) => {
   }
 };
 
-// Supprimer une dépense (réservé au propriétaire)
+// Supprimer une dépense
 exports.deleteExpense = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const expense = await Expense.findById(id);
+    const expense = await Expense.findById(id).populate('shopId');
     if (!expense) {
       return res.status(404).json({ message: 'Dépense non trouvée' });
     }
 
-    // Vérifier que l'utilisateur est OWNER de la boutique de cette dépense
-    const member = await ShopMember.findOne({
-      shopId: expense.shopId,
-      userId: req.user.id,
-      status: 'active',
-    });
-
-    if (!member || member.role !== 'OWNER') {
-      return res.status(403).json({ message: 'Action réservée au propriétaire' });
+    // Vérifier que la boutique appartient à l'utilisateur
+    if (expense.shopId.userId.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Non autorisé' });
     }
 
     await expense.deleteOne();
