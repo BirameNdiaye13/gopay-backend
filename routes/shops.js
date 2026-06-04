@@ -4,7 +4,8 @@ const {
   getShops,
   createShop,
   updateShop,
-  deleteShop
+  deleteShop,
+  inviteManager
 } = require('../controllers/shopController');
 const { protect } = require('../middleware/auth');
 
@@ -17,5 +18,8 @@ router.route('/')
 router.route('/:id')
   .put(updateShop)
   .delete(deleteShop);
+
+// Inviter un gérant dans une boutique
+router.post('/:shopId/invite', inviteManager);
 
 module.exports = router;

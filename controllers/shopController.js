@@ -81,8 +81,9 @@ exports.deleteShop = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: 'Erreur serveur', error: error.message });
   }
+};   // ✅ AJOUTÉ : fermeture correcte de deleteShop
 
-  // Inviter un gérant pour une boutique
+// Inviter un gérant pour une boutique
 exports.inviteManager = async (req, res) => {
   try {
     const { shopId } = req.params;
@@ -91,13 +92,11 @@ exports.inviteManager = async (req, res) => {
     console.log('📤 INVITE: shopId =', shopId);
     console.log('📤 INVITE: managerPhone =', managerPhone);
 
-    // 1️⃣ Vérifier que la boutique existe et que l'utilisateur en est propriétaire
     const shop = await Shop.findById(shopId);
     if (!shop) {
       return res.status(404).json({ success: false, message: 'Boutique non trouvée' });
     }
 
-    // 2️⃣ Chercher l'utilisateur avec ce numéro de téléphone
     const User = require('../models/User');
     const managerUser = await User.findOne({ phone: managerPhone });
     
@@ -107,7 +106,6 @@ exports.inviteManager = async (req, res) => {
 
     console.log('📤 INVITE: managerUser._id =', managerUser._id);
 
-    // 3️⃣ Créer l'invitation (ShopMember avec status 'invited')
     const existingMember = await ShopMember.findOne({
       shopId,
       userId: managerUser._id
@@ -140,4 +138,4 @@ exports.inviteManager = async (req, res) => {
 };
 
 
-};
+
