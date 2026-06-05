@@ -6,59 +6,6 @@ const ShopMember = require('../models/ShopMember');
 const { protect } = require('../middleware/auth');  // ← CORRECTION : protect au lieu de authenticate
 const { isOwner } = require('../middleware/isOwner');
 
-// ✅ INVITER UN GÉRANT
-router.post('/:shopId/invite', protect, async (req, res) => {
-  try {
-    const { shopId } = req.params;
-    const { managerPhone } = req.body;
-    const userId = req.user.id;
-
-    // Vérifier que la boutique existe
-    const shop = await Shop.findById(shopId);
-    if (!shop) {
-      return res.status(404).json({ success: false, message: 'Boutique non trouvée' });
-    }
-
-    // Vérifier que l'utilisateur est propriétaire
-    const member = await ShopMember.findOne({ shopId, userId });
-    if (!member || member.role !== 'OWNER') {
-      return res.status(403).json({ success: false, message: 'Seul le propriétaire peut inviter' });
-    }
-
-    // Chercher l'utilisateur par téléphone
-    const managerUser = await User.findOne({ phone: managerPhone });
-    if (!managerUser) {
-      return res.status(404).json({ success: false, message: 'Utilisateur non trouvé' });
-    }
-
-    // Vérifier si déjà membre
-    const existingMember = await ShopMember.findOne({ shopId, userId: managerUser._id });
-    if (existingMember) {
-      return res.status(400).json({ success: false, message: 'Cet utilisateur est déjà membre' });
-    }
-
-    // Créer l'invitation
-    const newMember = new ShopMember({
-      shopId,
-      userId: managerUser._id,
-      role: 'MANAGER',
-      status: 'invited',
-      invitedAt: new Date(),
-      invitedBy: userId
-    });
-
-    await newMember.save();
-
-    res.json({
-      success: true,
-      message: 'Invitation envoyée !',
-      data: { member: newMember }
-    });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
-
 // ✅ LISTER LES MEMBRES D'UNE BOUTIQUE
 router.get('/:shopId/members', protect, async (req, res) => {
   try {
