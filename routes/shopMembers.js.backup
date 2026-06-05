@@ -163,12 +163,10 @@ router.get('/user/shops', protect, async (req, res) => {
     const members = await ShopMember.find({ userId, status: 'active' })
       .populate('shopId');
 
-    const shops = members
-      .filter(m => m.shopId != null)
-      .map(m => ({
-        ...m.shopId.toObject(),
-        userRole: m.role
-      }));
+    const shops = members.map(m => ({
+      ...m.shopId.toObject(),
+      userRole: m.role
+    }));
 
     res.json({
       success: true,

@@ -71,26 +71,17 @@ exports.deleteShop = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const shop = await Shop.findByIdAndDelete(id);
+    const shop = await Shop.findOneAndDelete({ _id: id, userId: req.user.id });
 
     if (!shop) {
       return res.status(404).json({ message: 'Boutique non trouvée' });
     }
 
-    // Supprimer en cascade les membres, transactions et dépenses liés
-    const ShopMember = require('../models/ShopMember');
-    const Transaction = require('../models/Transaction');
-    const Expense = require('../models/Expense');
-
-    await ShopMember.deleteMany({ shopId: id });
-    await Transaction.deleteMany({ shopId: id });
-    await Expense.deleteMany({ shopId: id });
-
     res.json({ success: true, message: 'Boutique supprimée' });
   } catch (error) {
     res.status(500).json({ message: 'Erreur serveur', error: error.message });
   }
-};
+};   // ✅ AJOUTÉ : fermeture correcte de deleteShop
 
 // Inviter un gérant pour une boutique
 exports.inviteManager = async (req, res) => {
