@@ -1,6 +1,7 @@
 const Transaction = require('../models/Transaction');
 const Shop = require('../models/Shop');
 const ShopMember = require('../models/ShopMember');
+const logActivity = require('../utils/logActivity');
 
 // Obtenir les transactions d'une boutique
 exports.getTransactions = async (req, res) => {
@@ -39,6 +40,18 @@ exports.createTransaction = async (req, res) => {
       clientName,
       type
     });
+
+    // Historique : enregistrer le paiement reçu
+    if (type === 'income') {
+      await logActivity({
+        shopId,
+        user: req.user,
+        userRole: member.role,
+        action: 'payment_received',
+        description: `a encaissé ${amount} FCFA${method ? ' via ' + method : ''}`,
+        amount,
+      });
+    }
 
     res.status(201).json({ success: true, transaction });
   } catch (error) {

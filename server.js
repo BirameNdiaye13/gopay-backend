@@ -29,6 +29,7 @@ app.use('/api/shops', require('./routes/shops'));
 app.use('/api/shops', require('./routes/shopMembers'));
 app.use('/api/transactions', require('./routes/transactions'));
 app.use('/api/expenses', require('./routes/expenses'));
+app.use('/api/activities', require('./routes/activities'));
 
 // Connexion MongoDB
 mongoose.connect(process.env.MONGODB_URI)
