@@ -4,7 +4,6 @@ const User = require('../models/User');
 const Shop = require('../models/Shop');
 const ShopMember = require('../models/ShopMember');
 const { protect } = require('../middleware/auth');  // ← CORRECTION : protect au lieu de authenticate
-const { isOwner } = require('../middleware/isOwner');
 
 // ✅ INVITER UN GÉRANT
 router.post('/:shopId/invite', protect, async (req, res) => {
@@ -72,29 +71,6 @@ router.get('/:shopId/members', protect, async (req, res) => {
       success: true,
       data: { members }
     });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
-
-// ✅ RETIRER UN GÉRANT (réservé au propriétaire)
-router.delete('/:shopId/members/:memberId', protect, isOwner, async (req, res) => {
-  try {
-    const { memberId } = req.params;
-
-    const member = await ShopMember.findById(memberId);
-    if (!member) {
-      return res.status(404).json({ success: false, message: 'Membre non trouvé' });
-    }
-
-    // Sécurité : on ne peut pas retirer un propriétaire
-    if (member.role === 'OWNER') {
-      return res.status(400).json({ success: false, message: 'Impossible de retirer un propriétaire' });
-    }
-
-    await member.deleteOne();
-
-    res.json({ success: true, message: 'Gérant retiré' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
