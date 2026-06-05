@@ -5,6 +5,7 @@ const Shop = require('../models/Shop');
 const ShopMember = require('../models/ShopMember');
 const { protect } = require('../middleware/auth');  // ← CORRECTION : protect au lieu de authenticate
 const { isOwner } = require('../middleware/isOwner');
+const logActivity = require('../utils/logActivity');
 
 // ✅ LISTER LES MEMBRES D'UNE BOUTIQUE
 router.get('/:shopId/members', protect, async (req, res) => {
@@ -27,9 +28,9 @@ router.get('/:shopId/members', protect, async (req, res) => {
 // ✅ RETIRER UN GÉRANT (réservé au propriétaire)
 router.delete('/:shopId/members/:memberId', protect, isOwner, async (req, res) => {
   try {
-    const { memberId } = req.params;
+    const { shopId, memberId } = req.params;
 
-    const member = await ShopMember.findById(memberId);
+    const member = await ShopMember.findById(memberId).populate('userId', 'name phone');
     if (!member) {
       return res.status(404).json({ success: false, message: 'Membre non trouvé' });
     }
@@ -39,7 +40,17 @@ router.delete('/:shopId/members/:memberId', protect, isOwner, async (req, res) =
       return res.status(400).json({ success: false, message: 'Impossible de retirer un propriétaire' });
     }
 
+    const removedName = member.userId?.name || member.userId?.phone || 'un gérant';
+
     await member.deleteOne();
+
+    await logActivity({
+      shopId,
+      user: req.user,
+      userRole: 'OWNER',
+      action: 'manager_removed',
+      description: `a retiré ${removedName} de la boutique`,
+    });
 
     res.json({ success: true, message: 'Gérant retiré' });
   } catch (error) {

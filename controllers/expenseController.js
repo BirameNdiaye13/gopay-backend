@@ -1,5 +1,6 @@
 const Expense = require('../models/Expense');
 const ShopMember = require('../models/ShopMember');
+const logActivity = require('../utils/logActivity');
 
 // Obtenir les dépenses d'une boutique (tout membre actif)
 exports.getExpenses = async (req, res) => {
@@ -35,6 +36,15 @@ exports.createExpense = async (req, res) => {
       note
     });
 
+    await logActivity({
+      shopId,
+      user: req.user,
+      userRole: member.role,
+      action: 'expense_added',
+      description: `a ajouté une dépense de ${amount} FCFA${category ? ' (' + category + ')' : ''}`,
+      amount,
+    });
+
     res.status(201).json({ success: true, expense });
   } catch (error) {
     res.status(500).json({ message: 'Erreur serveur', error: error.message });
@@ -63,6 +73,16 @@ exports.deleteExpense = async (req, res) => {
     }
 
     await expense.deleteOne();
+
+    await logActivity({
+      shopId: expense.shopId,
+      user: req.user,
+      userRole: member.role,
+      action: 'expense_deleted',
+      description: `a supprimé une dépense de ${expense.amount} FCFA`,
+      amount: expense.amount,
+    });
+
     res.json({ success: true, message: 'Dépense supprimée' });
   } catch (error) {
     res.status(500).json({ message: 'Erreur serveur', error: error.message });

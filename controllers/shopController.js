@@ -1,5 +1,6 @@
 const Shop = require('../models/Shop');
 const ShopMember = require('../models/ShopMember');
+const logActivity = require('../utils/logActivity');
 
 // Obtenir toutes les boutiques de l'utilisateur
 exports.getShops = async (req, res) => {
@@ -59,6 +60,14 @@ exports.updateShop = async (req, res) => {
     if (!shop) {
       return res.status(404).json({ message: 'Boutique non trouvée' });
     }
+
+    await logActivity({
+      shopId: id,
+      user: req.user,
+      userRole: 'OWNER',
+      action: 'shop_updated',
+      description: `a modifié les informations de la boutique`,
+    });
 
     res.json({ success: true, shop });
   } catch (error) {
@@ -134,6 +143,14 @@ exports.inviteManager = async (req, res) => {
     });
 
     console.log('✅ INVITE: Invitation créée =', invitation);
+
+    await logActivity({
+      shopId,
+      user: req.user,
+      userRole: 'OWNER',
+      action: 'manager_invited',
+      description: `a invité ${managerUser.name || managerPhone} comme gérant`,
+    });
 
     res.status(201).json({ 
       success: true, 
