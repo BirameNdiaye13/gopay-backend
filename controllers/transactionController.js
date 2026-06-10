@@ -24,7 +24,7 @@ exports.getTransactions = async (req, res) => {
 // Créer une transaction
 exports.createTransaction = async (req, res) => {
   try {
-    const { shopId, amount, method, sender, clientName, type } = req.body;
+    const { shopId, amount, method, sender, clientName, type, fingerprint } = req.body;
 
     // Vérifier que la boutique appartient à l'utilisateur
     const member = await ShopMember.findOne({ shopId, userId: req.user.id, status: 'active' });
@@ -38,7 +38,8 @@ exports.createTransaction = async (req, res) => {
       method,
       sender,
       clientName,
-      type
+      type,
+      fingerprint: fingerprint || null
     });
 
     // Historique : enregistrer le paiement reçu
@@ -55,6 +56,14 @@ exports.createTransaction = async (req, res) => {
 
     res.status(201).json({ success: true, transaction });
   } catch (error) {
+    // Erreur 11000 = doublon (empreinte déjà enregistrée pour cette boutique)
+    if (error.code === 11000) {
+      return res.status(200).json({
+        success: true,
+        duplicate: true,
+        message: 'Paiement déjà enregistré (doublon ignoré)'
+      });
+    }
     res.status(500).json({ message: 'Erreur serveur', error: error.message });
   }
 };

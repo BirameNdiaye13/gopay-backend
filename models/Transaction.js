@@ -36,7 +36,22 @@ const transactionSchema = new mongoose.Schema({
   timestamp: {
     type: Date,
     default: Date.now
+  },
+  fingerprint: {
+    type: String,
+    default: null
   }
 });
+
+// Index unique partiel : empêche deux paiements identiques (même empreinte)
+// dans une même boutique. Ne s'applique que si fingerprint existe (string),
+// donc les transactions manuelles (sans empreinte) ne sont pas affectées.
+transactionSchema.index(
+  { shopId: 1, fingerprint: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { fingerprint: { $type: 'string' } }
+  }
+);
 
 module.exports = mongoose.model('Transaction', transactionSchema);
